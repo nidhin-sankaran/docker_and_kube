@@ -351,5 +351,213 @@ application.
 -   -p → Expose container port to host
 
 ------------------------------------------------------------------------
+# 🐳 Docker Compose -- Complete Notes
 
+------------------------------------------------------------------------
+
+## 📌 What is Docker Compose?
+
+Docker Compose is used to:
+
+-   Start multiple containers at the same time
+-   Define services in a single configuration file
+-   Manage multi-container applications easily
+
+Instead of running multiple `docker run` commands manually, we define
+everything inside a **docker-compose.yml** file.
+
+------------------------------------------------------------------------
+
+## 🧠 Why Docker Compose?
+
+Example Scenario:
+
+You have: - Node.js app - Redis - Database
+
+Without Compose → You must start each container manually.\
+With Compose → One command starts everything.
+
+------------------------------------------------------------------------
+
+# 📄 docker-compose.yml Explained
+
+``` yaml
+version: '3'
+
+services:
+  redis-server:
+    image: redis
+
+  node-app:
+    restart: always
+    build: .
+    ports:
+      - "4001:8081"
+```
+
+------------------------------------------------------------------------
+
+## 🔍 Line-by-Line Explanation
+
+### 1️⃣ version: '3'
+
+-   Defines Compose file format version
+-   Version 3 is commonly used
+-   Determines supported features
+
+------------------------------------------------------------------------
+
+## 2️⃣ services:
+
+-   Defines all containers for the application
+-   Each service = one container
+
+------------------------------------------------------------------------
+
+## 🔴 redis-server Service
+
+``` yaml
+redis-server:
+  image: redis
+```
+
+-   Service name: `redis-server`
+-   Uses official Redis image from Docker Hub
+-   No build needed (prebuilt image)
+
+Docker automatically pulls the image if not available locally.
+
+------------------------------------------------------------------------
+
+## 🟢 node-app Service
+
+``` yaml
+node-app:
+  restart: always
+  build: .
+  ports:
+    - "4001:8081"
+```
+
+### restart: always
+
+Defines container restart policy.
+
+Available policies:
+
+-   no → Do not restart
+-   always → Always restart if stopped
+-   on-failure → Restart only if container exits with error
+-   unless-stopped → Restart unless manually stopped
+
+------------------------------------------------------------------------
+
+### build: .
+
+-   Builds image using Dockerfile in current directory
+-   Equivalent to running: docker build .
+
+------------------------------------------------------------------------
+
+### ports:
+
+``` yaml
+- "4001:8081"
+```
+
+Format: hostPort:containerPort
+
+-   4001 → Port on your machine
+-   8081 → Port inside container
+
+Opening: http://localhost:4001
+
+Forwards to container port 8081.
+
+------------------------------------------------------------------------
+
+# 🚀 Docker Compose Commands
+
+### Start all services
+
+docker-compose up
+
+-   Builds (if needed)
+-   Creates containers
+-   Starts all services
+-   Shows logs in terminal
+
+------------------------------------------------------------------------
+
+### Build and start
+
+docker-compose up --build
+
+-   Forces rebuild of images
+-   Useful when Dockerfile changes
+
+------------------------------------------------------------------------
+
+### Run in background
+
+docker-compose up -d
+
+-   Runs in detached mode
+-   Terminal is free
+
+------------------------------------------------------------------------
+
+### Stop and remove everything
+
+docker-compose down
+
+-   Stops containers
+-   Removes containers
+-   Removes networks
+
+------------------------------------------------------------------------
+
+# 🔄 Restart Policies Summary
+
+Policy           Meaning
+  ---------------- ---------------------------------
+no               Never restart
+always           Always restart
+on-failure       Restart only on crash
+unless-stopped   Restart unless manually stopped
+
+------------------------------------------------------------------------
+
+# 🧠 How Compose Works Internally
+
+When you run:
+
+docker-compose up
+
+Compose:
+
+1.  Creates a network
+2.  Builds images (if needed)
+3.  Creates containers
+4.  Connects them via internal network
+5.  Starts them
+
+Containers can communicate using service names:
+
+Example: Node app can access Redis using: redis-server:6379
+
+------------------------------------------------------------------------
+
+# ⚡ Quick Summary
+
+-   Docker Compose → Manage multi-container apps
+-   services → Define containers
+-   build → Build image from Dockerfile
+-   image → Use prebuilt image
+-   ports → Expose container ports
+-   restart → Auto-restart behavior
+-   up → Start services
+-   down → Stop & remove services
+
+------------------------------------------------------------------------
 ✅ End of Notes
