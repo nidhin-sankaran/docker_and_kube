@@ -560,4 +560,213 @@ Example: Node app can access Redis using: redis-server:6379
 -   down → Stop & remove services
 
 ------------------------------------------------------------------------
+
+# 🐳 Advanced Docker Notes -- Dev Files, Volumes & Attach
+
+------------------------------------------------------------------------
+
+# 📁 Custom Dockerfile (Dev vs Production)
+
+In real projects, we usually maintain:
+
+-   Dockerfile → Production
+-   Dockerfile.dev → Development
+
+Why?
+
+Development needs: - nodemon - hot reload - debugging tools
+
+Production needs: - optimized build - minimal dependencies - smaller
+image size
+
+------------------------------------------------------------------------
+
+## 🧪 Example
+
+Dockerfile (Production)
+
+``` dockerfile
+FROM node:14-alpine
+WORKDIR /app
+COPY package.json .
+RUN npm install --only=production
+COPY . .
+CMD ["npm", "start"]
+```
+
+Dockerfile.dev (Development)
+
+``` dockerfile
+FROM node:14-alpine
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY . .
+CMD ["npm", "run", "dev"]
+```
+
+------------------------------------------------------------------------
+
+## 🔨 Building with Custom Dockerfile
+
+``` bash
+docker build -f Dockerfile.dev .
+```
+
+Explanation:
+
+-   -f → specify custom Dockerfile
+-   Dockerfile.dev → file to use
+-   . → build context
+
+Without -f, Docker uses default file named Dockerfile.
+
+------------------------------------------------------------------------
+
+# 📦 Docker Volumes
+
+By default:
+
+COPY . .
+
+This copies a snapshot of your code into the container.
+
+Problem: If you change code → container does NOT update automatically.
+
+------------------------------------------------------------------------
+
+## 🧠 What is a Volume?
+
+A volume is a reference (link) between:
+
+-   Host folder
+-   Container folder
+
+Instead of copying files, Docker maps them.
+
+------------------------------------------------------------------------
+
+## 📌 Example Using docker run
+
+``` bash
+docker run -v /app/node_modules -v $(pwd):/app <image_id>
+```
+
+Explanation:
+
+-   -v /app/node_modules\
+    → Prevents overwriting node_modules inside container
+
+-   -v \$(pwd):/app\
+    → Maps current folder to /app inside container
+
+\$(pwd) → Current directory path
+
+Result:
+
+Changes in your local project reflect instantly inside container.
+
+Perfect for development.
+
+------------------------------------------------------------------------
+
+# 🐳 Using Volumes in Docker Compose
+
+Example:
+
+``` yaml
+version: '3'
+
+services:
+  node-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - /app/node_modules
+      - .:/app
+    ports:
+      - "3000:3000"
+```
+
+------------------------------------------------------------------------
+
+## 🔍 Explanation
+
+build: context: . → current directory dockerfile: Dockerfile.dev →
+custom Dockerfile
+
+volumes: - /app/node_modules → anonymous volume - .:/app → map local
+folder to container
+
+Now changes in code auto reflect.
+
+------------------------------------------------------------------------
+
+# 🔗 Docker Attach
+
+## What is docker attach?
+
+docker attach connects your terminal to:
+
+-   STDIN
+-   STDOUT
+-   STDERR
+
+of a running container.
+
+------------------------------------------------------------------------
+
+## Example
+
+Start container:
+
+``` bash
+docker run -it ubuntu
+```
+
+In another terminal:
+
+``` bash
+docker attach <container_id>
+```
+
+Now you are attached to that container's terminal session.
+
+------------------------------------------------------------------------
+
+## ⚠️ Limitation of docker attach
+
+1.  If you press Ctrl + C → container stops.
+2.  Only attaches to main process.
+3.  Not ideal for running additional commands.
+
+------------------------------------------------------------------------
+
+## Better Alternative
+
+Use:
+
+``` bash
+docker exec -it <container_id> sh
+```
+
+This:
+
+-   Opens new shell
+-   Does NOT stop container on exit
+-   Safer and more flexible
+
+------------------------------------------------------------------------
+
+# 🧠 Quick Summary
+
+-   Use Dockerfile.dev for development
+-   Use Dockerfile for production
+-   -f flag selects custom Dockerfile
+-   Volumes map host folder instead of copying
+-   docker attach connects to main process
+-   docker exec is safer for interactive work
+
+------------------------------------------------------------------------
 ✅ End of Notes
